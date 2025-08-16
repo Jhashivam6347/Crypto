@@ -36,7 +36,90 @@ const statusIcons = {
 
 export default function KYCPage() {
   const [data, setData] = useState(users);
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
 
+  const role = loggedInUser?.role || "user"; // fallback as "user"
+
+  // If user → show only their details
+  if (role === "user") {
+    const userIndex = data.findIndex((u) => u.email === loggedInUser.email);
+    const user = data[userIndex];
+
+    const handleUpload = (e, docType) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const updated = [...data];
+      updated[userIndex].documents[docType] = file.name; // store filename only (not actual file upload)
+      updated[userIndex].status = "pending"; // reset status to pending after new upload
+      setData(updated);
+    };
+
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">My KYC</h1>
+
+        <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-lg font-semibold">{user?.name}</h2>
+              <p className="text-gray-500 text-sm">{user?.email}</p>
+            </div>
+            <span
+              className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                statusStyles[user?.status]
+              }`}
+            >
+              {statusIcons[user?.status]}
+              {user?.status.charAt(0).toUpperCase() + user?.status.slice(1)}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {/* Aadhaar Upload */}
+            <div>
+              <p className="text-sm text-gray-700 mb-1">Aadhaar:</p>
+              {user?.documents.aadhaar ? (
+                <a href="#" className="text-blue-600 underline">
+                  {user.documents.aadhaar}
+                </a>
+              ) : (
+                <div>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.png"
+                    onChange={(e) => handleUpload(e, "aadhaar")}
+                    className="text-sm"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* PAN Upload */}
+            <div>
+              <p className="text-sm text-gray-700 mb-1">PAN:</p>
+              {user?.documents.pan ? (
+                <a href="#" className="text-blue-600 underline">
+                  {user.documents.pan}
+                </a>
+              ) : (
+                <div>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.png"
+                    onChange={(e) => handleUpload(e, "pan")}
+                    className="text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If admin → show full list with verify/reject controls
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">KYC Verification</h1>

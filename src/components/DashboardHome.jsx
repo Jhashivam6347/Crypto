@@ -11,6 +11,7 @@ const transactionData = [
     fiat: "₹41,000",
   },
   {
+    
     user: "Ayesha",
     amount: "$100",
     status: "Pending",
